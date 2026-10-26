@@ -1,11 +1,13 @@
-FROM golang:1.26-alpine AS build
-WORKDIR /src
-COPY go.mod go.sum ./
-RUN go mod download
-COPY *.go ./
-RUN CGO_ENABLED=0 go build -trimpath -o /out/orders .
+FROM python:3.12-slim
+WORKDIR /app
 
-FROM gcr.io/distroless/static-debian12:nonroot
-COPY --from=build /out/orders /orders
+ENV PYTHONUNBUFFERED=1
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY main.py ./
+COPY app ./app
+
 EXPOSE 8080
-ENTRYPOINT ["/orders"]
+CMD ["python", "main.py"]
